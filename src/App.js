@@ -102,10 +102,17 @@ function App() {
 
   // Score logic
   useEffect(() => {
-    if (ballPos.left <= -100) {
+    if (ballPos.left <= -BALL_SIZE) {
       setGamePlay(false);
+      setBallPos(initialBallPos);
       setSpeed((speed) => ({ x: INIT_SPEED, y: INIT_SPEED }));
-      resetBallPosition();
+      setGamePlay(true);
+    }
+
+    if (ballPos.left >= GAME_WIDTH + BALL_SIZE) {
+      setGamePlay(false);
+      setBallPos(initialBallPos);
+      setSpeed((speed) => ({ x: -INIT_SPEED, y: INIT_SPEED }));
       setGamePlay(true);
     }
   }, [ballPos.top, ballPos.left])
@@ -115,10 +122,10 @@ function App() {
     if (gamePlay && gameInProgress) {
         if (speed.x > 0) {
           if (ballPos.top > playerTwoPos.top + PADDLE_HEIGHT) {
-            setPlayerTwoPos(pos => ({...pos, top: Math.min(GAME_HEIGHT - PADDLE_HEIGHT, pos.top + PADDLE_SPEED) }))
+            // setPlayerTwoPos(pos => ({...pos, top: Math.min(GAME_HEIGHT - PADDLE_HEIGHT, pos.top + PADDLE_SPEED) }))
           }
           if (ballPos.top < playerTwoPos.top + PADDLE_HEIGHT) {
-            setPlayerTwoPos(pos => ({...pos, top: Math.max(0, pos.top - PADDLE_SPEED) }))
+            // setPlayerTwoPos(pos => ({...pos, top: Math.max(0, pos.top - PADDLE_SPEED) }))
           }
         }
     }
