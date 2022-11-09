@@ -5,4 +5,5 @@ export const GameBox = styled.div`
     height: ${props => props.height}px;
     position: relative;
     background-color: aqua;
+    overflow: hidden;
 `
