@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Ball } from './Ball';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
@@ -8,20 +8,23 @@ const GAME_HEIGHT = 500;
 const GAME_WIDTH = 800;
 
 function App() {
-  const initialBallY = (GAME_HEIGHT - BALL_SIZE) / 2;
-  const initialBallX = (GAME_WIDTH + BALL_SIZE) / 2;
-  const [ballPositionX, setBallPositionX] = useState(initialBallX);
-  const [ballPositionY, setBallPositionY] = useState(initialBallY);
+  const initialBallPos = { top: (GAME_HEIGHT - BALL_SIZE) / 2, left: (GAME_WIDTH + BALL_SIZE) / 2 };
+  // const initialBallY = (GAME_HEIGHT - BALL_SIZE) / 2;
+  // const initialBallX = (GAME_WIDTH + BALL_SIZE) / 2;
+  const [ballPos, setBallPos] = useState(initialBallPos);
+  // const [ballPositionX, setBallPositionX] = useState(initialBallX);
+  // const [ballPositionY, setBallPositionY] = useState(initialBallY);
   const [speedX, setSpeedX] = useState(0);
-  const [speedY, setSpeedY] = useState(1);
+  const [speedY, setSpeedY] = useState(0);
 
   useEffect(() => {
     let timerID;
     if (timerID) clearInterval(timerID);
     timerID = setInterval(
       () => {
-        setBallPositionX(ballPositionX => ballPositionX + speedX);
-        setBallPositionY(ballPositionY => ballPositionY + speedY);
+        // setBallPositionX(ballPositionX => ballPositionX + speedX);
+        // setBallPositionY(ballPositionY => ballPositionY + speedY);
+        setBallPos(({ top, left }) => ({ top: top + speedX, left: left + speedY }));
       },
       25
     );
@@ -30,19 +33,19 @@ function App() {
   }, [speedX, speedY]);
 
   useEffect(() => {
-    console.log(ballPositionX, ballPositionY, GAME_HEIGHT);
-    if (ballPositionY === GAME_HEIGHT - BALL_SIZE) {
+    console.log(ballPos, GAME_HEIGHT);
+    if (ballPos.top === GAME_HEIGHT - BALL_SIZE) {
       setSpeedY(speed => -speed);
     }
-    if (ballPositionY === 0) {
+    if (ballPos.left === 0) {
       setSpeedY(speed => -speed);
     }
-  }, [ballPositionX, ballPositionY]);
+  }, [ballPos]);
 
   return (
     <GameContainer>
       <GameBox width={GAME_WIDTH} height={GAME_HEIGHT}>
-        <Ball size={BALL_SIZE} ballPositionX={ballPositionX} ballPositionY={ballPositionY} />
+        <Ball size={BALL_SIZE} position={ballPos} />
       </GameBox>
     </GameContainer>
   );
