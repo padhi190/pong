@@ -84,7 +84,7 @@ function App() {
 
     //Bounce off right paddle
     const touchRightPaddle =
-      ballPos.left >= playerTwoPos.left &&
+      ballPos.left >= playerTwoPos.left - PADDLE_WIDTH &&
       ballPos.top >= playerTwoPos.top &&
       ballPos.top <= playerTwoPos.top + PADDLE_HEIGHT;
     
@@ -122,10 +122,10 @@ function App() {
     if (gamePlay && gameInProgress) {
         if (speed.x > 0) {
           if (ballPos.top > playerTwoPos.top + PADDLE_HEIGHT) {
-            // setPlayerTwoPos(pos => ({...pos, top: Math.min(GAME_HEIGHT - PADDLE_HEIGHT, pos.top + PADDLE_SPEED) }))
+            setPlayerTwoPos(pos => ({...pos, top: Math.min(GAME_HEIGHT, pos.top + PADDLE_SPEED) }))
           }
           if (ballPos.top < playerTwoPos.top + PADDLE_HEIGHT) {
-            // setPlayerTwoPos(pos => ({...pos, top: Math.max(0, pos.top - PADDLE_SPEED) }))
+            setPlayerTwoPos(pos => ({...pos, top: Math.max(0, pos.top - PADDLE_SPEED) }))
           }
         }
     }
