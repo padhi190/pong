@@ -3,6 +3,7 @@ import { Ball } from './Ball';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
 import { gameReducer, ACTION_TYPES } from './gameReducer';
+import { GameScore } from './GameScore';
 import { GAME_HEIGHT, BALL_SIZE, GAME_WIDTH, INIT_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH, INTERVAL } from './GAME_CONST';
 import { Paddle } from './Paddle';
 
@@ -77,8 +78,8 @@ function App() {
 
     timerID = setInterval(() => {
       if (state.gameState.inPlay && state.gameState.inProgress) {
+        // only move if ball is heading towards player 2
         if (state.ballSpeed.left > 0) {
-          // only move if ball is heading toward player 2
           if (state.ballPos.top > state.playerTwo.pos.top + PADDLE_HEIGHT + 50) {
             dispatch({ type: ACTION_TYPES.MOVE_PLAYER_TWO, payload: 'DOWN' });
           }
@@ -131,15 +132,6 @@ function App() {
     state.playerTwo.pos.top,
     state.playerTwo.pos.left,
   ]);
-
-  const GameScore = ({playerOne, playerTwo}) => {
-    return (
-      <div style={{display: 'flex', justifyContent: 'space-between', width: `${GAME_WIDTH}px`}}>
-        <h3>Player 1 {playerOne}</h3>
-        <h3>Player 2 {playerTwo}</h3>
-      </div>
-    )
-  }
 
   return (
     <GameContainer>
