@@ -97,9 +97,9 @@ function App() {
     const withinArea =
       state.ballPos.left >= 0 && state.ballPos.left <= GAME_WIDTH;
     // Bounce off top and bottom wall
-    if (state.ballPos.top === GAME_HEIGHT - BALL_SIZE && withinArea)
+    if (state.ballPos.top >= GAME_HEIGHT - BALL_SIZE && withinArea)
       dispatch({ type: ACTION_TYPES.BOUNCE_BOTTOM });
-    if (state.ballPos.top === 0 && withinArea)
+    if (state.ballPos.top <= 0 && withinArea)
       dispatch({ type: ACTION_TYPES.BOUNCE_TOP });
 
     // Bounce off left paddle

@@ -4,6 +4,8 @@ import {
   PADDLE_HEIGHT,
   BALL_SIZE,
   GAME_WIDTH,
+  INIT_SPEED,
+  INC_SPEED,
 } from './GAME_CONST';
 
 export const ACTION_TYPES = {
@@ -117,6 +119,10 @@ export const gameReducer = (state, action) => {
           ...state.playerOne,
           score: state.playerOne.score + 1,
         },
+        ballSpeed: {
+          top: INIT_SPEED,
+          left: -INIT_SPEED
+        },
         ballPos: INITIAL_BALL_POS,
       };
     case ACTION_TYPES.PLAYER_TWO_SCORE:
@@ -125,6 +131,10 @@ export const gameReducer = (state, action) => {
         playerTwo: {
           ...state.playerTwo,
           score: state.playerTwo.score + 1,
+        },
+        ballSpeed: {
+          top: INIT_SPEED,
+          left: INIT_SPEED
         },
         ballPos: INITIAL_BALL_POS,
       };
