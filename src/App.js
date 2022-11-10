@@ -21,7 +21,7 @@ const INITIAL_STATE = {
   },
   ballSpeed: {
     top: -INIT_SPEED,
-    left: 0,
+    left: -INIT_SPEED,
   },
   playerOne: {
     pos: {
@@ -59,12 +59,25 @@ const gameReducer = (state, action) => {
     case ACTION_TYPES.BOUNCE_TOP:
       return {
         ...state,
-        ballSpeed: { ...state.ballSpeed, top: -Math.abs(state.ballSpeed.top) },
+        ballSpeed: { ...state.ballSpeed, top: Math.abs(state.ballSpeed.top) },
       };
     case ACTION_TYPES.BOUNCE_BOTTOM:
       return {
         ...state,
-        ballSpeed: { ...state.ballSpeed, top: Math.abs(state.ballSpeed.top) },
+        ballSpeed: { ...state.ballSpeed, top: -Math.abs(state.ballSpeed.top) },
+      };
+    case ACTION_TYPES.BOUNCE_LEFT:
+      return {
+        ...state,
+        ballSpeed: { ...state.ballSpeed, left: Math.abs(state.ballSpeed.left) },
+      };
+    case ACTION_TYPES.BOUNCE_RIGHT:
+      return {
+        ...state,
+        ballSpeed: {
+          ...state.ballSpeed,
+          left: -Math.abs(state.ballSpeed.left),
+        },
       };
     case ACTION_TYPES.MOVE_BALL:
       return {
@@ -119,16 +132,20 @@ function App() {
     }
 
     return () => clearInterval(ballTimerID);
-  }, [state.ballSpeed.top, state.ballSpeed.left, state.gameState.inProgress, state.gameState.inPlay]);
-
+  }, [
+    state.ballSpeed.top,
+    state.ballSpeed.left,
+    state.gameState.inProgress,
+    state.gameState.inPlay,
+  ]);
 
   // Paddle movement Player 1
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp') {
-      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: "UP" });
+      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'UP' });
     }
     if (e.key === 'ArrowDown') {
-      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: "DOWN" });
+      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'DOWN' });
     }
   };
   useEffect(() => {
@@ -139,11 +156,37 @@ function App() {
 
   //Ball bounce logic
   useEffect(() => {
+    const withinArea =
+      state.ballPos.left >= 0 && state.ballPos.left <= GAME_WIDTH;
     // Bounce off top and bottom wall
-    if (state.ballPos.top === GAME_HEIGHT - BALL_SIZE)
+    if (state.ballPos.top === GAME_HEIGHT - BALL_SIZE && withinArea)
+      dispatch({ type: ACTION_TYPES.BOUNCE_BOTTOM });
+    if (state.ballPos.top === 0 && withinArea)
       dispatch({ type: ACTION_TYPES.BOUNCE_TOP });
-    if (state.ballPos.top === 0) dispatch({ type: ACTION_TYPES.BOUNCE_BOTTOM });
-  }, [state.ballPos.top, state.ballPos.left]);
+
+    // Bounce off left paddle
+    const touchLeftPaddle =
+      state.ballPos.left <= state.playerOne.pos.left + PADDLE_WIDTH &&
+      state.ballPos.top >= state.playerOne.pos.top &&
+      state.ballPos.top <= state.playerOne.pos.top + PADDLE_HEIGHT;
+
+    if (touchLeftPaddle) dispatch({ type: ACTION_TYPES.BOUNCE_LEFT });
+
+    // Bounce off right paddle
+    const touchRightPaddle =
+      state.ballPos.left >= state.playerTwo.pos.left - PADDLE_WIDTH &&
+      state.ballPos.top >= state.playerTwo.pos.top &&
+      state.ballPos.top <= state.playerTwo.pos.top + PADDLE_HEIGHT;
+
+    if (touchRightPaddle) dispatch({ type: ACTION_TYPES.BOUNCE_RIGHT });
+  }, [
+    state.ballPos.top,
+    state.ballPos.left,
+    state.playerOne.pos.top,
+    state.playerOne.pos.left,
+    state.playerTwo.pos.top,
+    state.playerTwo.pos.left,
+  ]);
 
   return (
     <GameContainer>
