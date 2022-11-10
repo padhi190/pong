@@ -120,7 +120,14 @@ export const gameReducer = (state, action) => {
         ballPos: INITIAL_BALL_POS,
       };
     case ACTION_TYPES.PLAYER_TWO_SCORE:
-      return state
+      return {
+        ...state,
+        playerTwo: {
+          ...state.playerTwo,
+          score: state.playerTwo.score + 1,
+        },
+        ballPos: INITIAL_BALL_POS,
+      };
     default:
       return state;
   }
