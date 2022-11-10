@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { Ball } from './Ball';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
@@ -14,136 +14,150 @@ const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 35; //how fast paddle can move
 const INTERVAL = 25; //used in setInterval
 
-function App() {
-  const initialBallPos = {
+const INITIAL_STATE = {
+  ballPos: {
     top: (GAME_HEIGHT - BALL_SIZE) / 2,
     left: (GAME_WIDTH + BALL_SIZE) / 2,
-  };
-  const [ballPos, setBallPos] = useState(initialBallPos);
-  const [speed, setSpeed] = useState({ x: -INIT_SPEED, y: INIT_SPEED });
-  const [gameInProgress, setGameInProgress] = useState(true);
-  const [gamePlay, setGamePlay] = useState(true);
-  const [playerOnePos, setPlayerOnePos] = useState({ top: (GAME_HEIGHT - PADDLE_HEIGHT) / 2, left: 0 });
-  const [playerTwoPos, setPlayerTwoPos] = useState({ top: (GAME_HEIGHT - PADDLE_HEIGHT) / 2, left: GAME_WIDTH - PADDLE_WIDTH})
+  },
+  ballSpeed: {
+    top: -INIT_SPEED,
+    left: 0,
+  },
+  playerOne: {
+    pos: {
+      top: (GAME_HEIGHT - PADDLE_HEIGHT) / 2,
+      left: 0,
+    },
+    score: 0,
+  },
+  playerTwo: {
+    pos: {
+      top: (GAME_HEIGHT - PADDLE_HEIGHT) / 2,
+      left: GAME_WIDTH - PADDLE_WIDTH,
+    },
+    score: 0,
+  },
+  gameState: {
+    inProgress: true,
+    inPlay: true,
+  },
+};
 
-  const resetBallPosition = () => {
-    setBallPos(initialBallPos);
-  };
+const ACTION_TYPES = {
+  MOVE_BALL: 'MOVE_BALL',
+  BOUNCE_TOP: 'BOUNCE_TOP',
+  BOUNCE_BOTTOM: 'BOUNCE_BOTTOM',
+  BOUNCE_LEFT: 'BOUNCE_LEFT',
+  BOUNCE_RIGHT: 'BOUNCE_RIGHT',
+  LEAVE_LEFT: 'LEAVE_LEFT',
+  LEAVE_RIGHT: 'LEAVE_RIGHT',
+  MOVE_PLAYER_ONE: 'MOVE_PLAYER_ONE',
+};
 
-  // Paddle movement Player 1
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowUp') {
-      setPlayerOnePos((playerOnePos) => ({
-        ...playerOnePos,
-        top: Math.max(0, playerOnePos.top - PADDLE_SPEED),
-      }));
-    }
-    if (e.key === 'ArrowDown') {
-      setPlayerOnePos((playerOnePos) => ({
-        ...playerOnePos,
-        top: Math.min(
-          GAME_HEIGHT - PADDLE_HEIGHT,
-          playerOnePos.top + PADDLE_SPEED
-        ),
-      }));
-    }
-  };
+const gameReducer = (state, action) => {
+  switch (action.type) {
+    case ACTION_TYPES.BOUNCE_TOP:
+      return {
+        ...state,
+        ballSpeed: { ...state.ballSpeed, top: -Math.abs(state.ballSpeed.top) },
+      };
+    case ACTION_TYPES.BOUNCE_BOTTOM:
+      return {
+        ...state,
+        ballSpeed: { ...state.ballSpeed, top: Math.abs(state.ballSpeed.top) },
+      };
+    case ACTION_TYPES.MOVE_BALL:
+      return {
+        ...state,
+        ballPos: {
+          top: state.ballPos.top + state.ballSpeed.top,
+          left: state.ballPos.left + state.ballSpeed.left,
+        },
+      };
+    case ACTION_TYPES.MOVE_PLAYER_ONE:
+      if (action.payload === 'UP')
+        return {
+          ...state,
+          playerOne: {
+            ...state.playerOne,
+            pos: {
+              ...state.playerOne.pos,
+              top: Math.max(0, state.playerOne.pos.top - PADDLE_SPEED),
+            },
+          },
+        };
+      else
+        return {
+          ...state,
+          playerOne: {
+            ...state.playerOne,
+            pos: {
+              ...state.playerOne.pos,
+              top: Math.min(
+                GAME_HEIGHT - PADDLE_HEIGHT,
+                state.playerOne.pos.top + PADDLE_SPEED
+              ),
+            },
+          },
+        };
+    default:
+      return state;
+  }
+};
+
+function App() {
+  const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
 
   //Ball movement logic
   useEffect(() => {
     let ballTimerID;
     if (ballTimerID) clearInterval(ballTimerID);
-    if (gamePlay && gameInProgress) {
+    if (state.gameState.inProgress && state.gameState.inPlay) {
       ballTimerID = setInterval(() => {
-        setBallPos(({ top, left }) => ({
-          top: top + speed.y,
-          left: left + speed.x,
-        }));
+        dispatch({ type: ACTION_TYPES.MOVE_BALL });
       }, INTERVAL);
     }
 
     return () => clearInterval(ballTimerID);
-  }, [speed.x, speed.y, gamePlay, gameInProgress]);
+  }, [state.ballSpeed.top, state.ballSpeed.left, state.gameState.inProgress, state.gameState.inPlay]);
 
-  // Ball bounce logic
-  useEffect(() => {
-    // Bounce off top and bottom wall
-    if (ballPos.top === GAME_HEIGHT - BALL_SIZE || ballPos.top === 0) {
-      setSpeed((speed) => ({ ...speed, y: -speed.y }));
+
+  // Paddle movement Player 1
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: "UP" });
     }
-
-    // Bounce off left paddle
-    const touchLeftPaddle =
-      ballPos.left <= playerOnePos.left + PADDLE_WIDTH &&
-      ballPos.top >= playerOnePos.top &&
-      ballPos.top <= playerOnePos.top + PADDLE_HEIGHT;
-    
-    if (touchLeftPaddle) {
-      setSpeed((speed) => ({ ...speed, x: -INC_SPEED*speed.x }));
+    if (e.key === 'ArrowDown') {
+      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: "DOWN" });
     }
-
-    //Bounce off right paddle
-    const touchRightPaddle =
-      ballPos.left >= playerTwoPos.left - PADDLE_WIDTH &&
-      ballPos.top >= playerTwoPos.top &&
-      ballPos.top <= playerTwoPos.top + PADDLE_HEIGHT;
-    
-    if (touchRightPaddle) {
-      setSpeed((speed) => ({ ...speed, x: -INC_SPEED*speed.x }));
-    }
-  }, [ballPos.top, ballPos.left, playerOnePos.left, playerOnePos.top]);
-
-  // Paddle movement listener
+  };
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Score logic
+  //Ball bounce logic
   useEffect(() => {
-    if (ballPos.left <= -BALL_SIZE) {
-      setGamePlay(false);
-      setBallPos(initialBallPos);
-      setSpeed((speed) => ({ x: INIT_SPEED, y: INIT_SPEED }));
-      setGamePlay(true);
-    }
-
-    if (ballPos.left >= GAME_WIDTH + BALL_SIZE) {
-      setGamePlay(false);
-      setBallPos(initialBallPos);
-      setSpeed((speed) => ({ x: -INIT_SPEED, y: INIT_SPEED }));
-      setGamePlay(true);
-    }
-  }, [ballPos.top, ballPos.left])
-
-  // Player 2 movement logic
-  useEffect(() => {
-    if (gamePlay && gameInProgress) {
-        if (speed.x > 0) {
-          if (ballPos.top > playerTwoPos.top + PADDLE_HEIGHT) {
-            setPlayerTwoPos(pos => ({...pos, top: Math.min(GAME_HEIGHT, pos.top + PADDLE_SPEED) }))
-          }
-          if (ballPos.top < playerTwoPos.top + PADDLE_HEIGHT) {
-            setPlayerTwoPos(pos => ({...pos, top: Math.max(0, pos.top - PADDLE_SPEED) }))
-          }
-        }
-    }
-  },[gameInProgress, gamePlay, speed.x, ballPos.top])
+    // Bounce off top and bottom wall
+    if (state.ballPos.top === GAME_HEIGHT - BALL_SIZE)
+      dispatch({ type: ACTION_TYPES.BOUNCE_TOP });
+    if (state.ballPos.top === 0) dispatch({ type: ACTION_TYPES.BOUNCE_BOTTOM });
+  }, [state.ballPos.top, state.ballPos.left]);
 
   return (
     <GameContainer>
       <GameBox width={GAME_WIDTH} height={GAME_HEIGHT}>
-        <Ball size={BALL_SIZE} position={ballPos} />
+        <Ball size={BALL_SIZE} position={state.ballPos} />
         <Paddle
           width={PADDLE_WIDTH}
           height={PADDLE_HEIGHT}
-          position={playerOnePos}
+          position={state.playerOne.pos}
         />
         <Paddle
           width={PADDLE_WIDTH}
           height={PADDLE_HEIGHT}
-          position={playerTwoPos}
+          position={state.playerTwo.pos}
         />
       </GameBox>
     </GameContainer>
