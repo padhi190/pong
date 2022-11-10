@@ -2,16 +2,17 @@ import { useEffect, useReducer } from 'react';
 import { Ball } from './Ball';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
+import { gameReducer, ACTION_TYPES } from './gameReducer';
 import { Paddle } from './Paddle';
 
 const BALL_SIZE = 20;
-const GAME_HEIGHT = 500;
+export const GAME_HEIGHT = 500;
 const GAME_WIDTH = 800;
-const INIT_SPEED = 5; //initial ball speed
-const INC_SPEED = 1; //increase speed on each touch by a factor of
+const INIT_SPEED = 0; //initial ball speed
+const INC_SPEED = 1; //increase speed on each touch by a factor of (not used yet)
 const PADDLE_WIDTH = 10;
-const PADDLE_HEIGHT = 100;
-const PADDLE_SPEED = 35; //how fast paddle can move
+export const PADDLE_HEIGHT = 100;
+export const PADDLE_SPEED = 35; //how fast paddle can move
 const INTERVAL = 25; //used in setInterval
 
 const INITIAL_STATE = {
@@ -41,81 +42,6 @@ const INITIAL_STATE = {
     inProgress: true,
     inPlay: true,
   },
-};
-
-const ACTION_TYPES = {
-  MOVE_BALL: 'MOVE_BALL',
-  BOUNCE_TOP: 'BOUNCE_TOP',
-  BOUNCE_BOTTOM: 'BOUNCE_BOTTOM',
-  BOUNCE_LEFT: 'BOUNCE_LEFT',
-  BOUNCE_RIGHT: 'BOUNCE_RIGHT',
-  LEAVE_LEFT: 'LEAVE_LEFT',
-  LEAVE_RIGHT: 'LEAVE_RIGHT',
-  MOVE_PLAYER_ONE: 'MOVE_PLAYER_ONE',
-};
-
-const gameReducer = (state, action) => {
-  switch (action.type) {
-    case ACTION_TYPES.BOUNCE_TOP:
-      return {
-        ...state,
-        ballSpeed: { ...state.ballSpeed, top: Math.abs(state.ballSpeed.top) },
-      };
-    case ACTION_TYPES.BOUNCE_BOTTOM:
-      return {
-        ...state,
-        ballSpeed: { ...state.ballSpeed, top: -Math.abs(state.ballSpeed.top) },
-      };
-    case ACTION_TYPES.BOUNCE_LEFT:
-      return {
-        ...state,
-        ballSpeed: { ...state.ballSpeed, left: Math.abs(state.ballSpeed.left) },
-      };
-    case ACTION_TYPES.BOUNCE_RIGHT:
-      return {
-        ...state,
-        ballSpeed: {
-          ...state.ballSpeed,
-          left: -Math.abs(state.ballSpeed.left),
-        },
-      };
-    case ACTION_TYPES.MOVE_BALL:
-      return {
-        ...state,
-        ballPos: {
-          top: state.ballPos.top + state.ballSpeed.top,
-          left: state.ballPos.left + state.ballSpeed.left,
-        },
-      };
-    case ACTION_TYPES.MOVE_PLAYER_ONE:
-      if (action.payload === 'UP')
-        return {
-          ...state,
-          playerOne: {
-            ...state.playerOne,
-            pos: {
-              ...state.playerOne.pos,
-              top: Math.max(0, state.playerOne.pos.top - PADDLE_SPEED),
-            },
-          },
-        };
-      else
-        return {
-          ...state,
-          playerOne: {
-            ...state.playerOne,
-            pos: {
-              ...state.playerOne.pos,
-              top: Math.min(
-                GAME_HEIGHT - PADDLE_HEIGHT,
-                state.playerOne.pos.top + PADDLE_SPEED
-              ),
-            },
-          },
-        };
-    default:
-      return state;
-  }
 };
 
 function App() {
@@ -154,6 +80,27 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Player 2 movement logic
+  useEffect(() => {
+    let timerID;
+
+    timerID = setInterval(() => {
+      if (state.gameState.inPlay && state.gameState.inProgress) {
+        if (state.ballSpeed.left > 0) {
+          // only move if ball is heading toward player 2
+          if (state.ballPos.top > state.playerTwo.pos.top + PADDLE_HEIGHT + 50) {
+            dispatch({ type: ACTION_TYPES.MOVE_PLAYER_TWO, payload: 'DOWN' });
+          }
+          if (state.ballPos.top < state.playerTwo.pos.top + PADDLE_HEIGHT - 50) {
+            dispatch({ type: ACTION_TYPES.MOVE_PLAYER_TWO, payload: 'UP' });
+          }
+        }
+      }
+    }, 25);
+
+    return () => clearInterval(timerID);
+  }, [state.gameState.inPlay, state.gameState.inProgress, state.ballPos.top]);
+
   //Ball bounce logic
   useEffect(() => {
     const withinArea =
@@ -166,6 +113,7 @@ function App() {
 
     // Bounce off left paddle
     const touchLeftPaddle =
+      withinArea &&
       state.ballPos.left <= state.playerOne.pos.left + PADDLE_WIDTH &&
       state.ballPos.top >= state.playerOne.pos.top &&
       state.ballPos.top <= state.playerOne.pos.top + PADDLE_HEIGHT;
@@ -174,6 +122,7 @@ function App() {
 
     // Bounce off right paddle
     const touchRightPaddle =
+      withinArea &&
       state.ballPos.left >= state.playerTwo.pos.left - PADDLE_WIDTH &&
       state.ballPos.top >= state.playerTwo.pos.top &&
       state.ballPos.top <= state.playerTwo.pos.top + PADDLE_HEIGHT;
@@ -188,8 +137,21 @@ function App() {
     state.playerTwo.pos.left,
   ]);
 
+  //Score Logic
+
+
+  const GameScore = ({playerOne, playerTwo}) => {
+    return (
+      <div style={{display: 'flex', justifyContent: 'space-between', width: `${GAME_WIDTH}px`}}>
+        <h3>Player 1 {playerOne}</h3>
+        <h3>Player 2 {playerTwo}</h3>
+      </div>
+    )
+  }
+
   return (
     <GameContainer>
+      <GameScore playerOne={state.playerOne.score} playerTwo={state.playerTwo.score} />
       <GameBox width={GAME_WIDTH} height={GAME_HEIGHT}>
         <Ball size={BALL_SIZE} position={state.ballPos} />
         <Paddle
