@@ -3,17 +3,8 @@ import { Ball } from './Ball';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
 import { gameReducer, ACTION_TYPES } from './gameReducer';
+import { GAME_HEIGHT, BALL_SIZE, GAME_WIDTH, INIT_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH, INTERVAL } from './GAME_CONST';
 import { Paddle } from './Paddle';
-
-const BALL_SIZE = 20;
-export const GAME_HEIGHT = 500;
-const GAME_WIDTH = 800;
-const INIT_SPEED = 0; //initial ball speed
-const INC_SPEED = 1; //increase speed on each touch by a factor of (not used yet)
-const PADDLE_WIDTH = 10;
-export const PADDLE_HEIGHT = 100;
-export const PADDLE_SPEED = 35; //how fast paddle can move
-const INTERVAL = 25; //used in setInterval
 
 const INITIAL_STATE = {
   ballPos: {
@@ -101,7 +92,7 @@ function App() {
     return () => clearInterval(timerID);
   }, [state.gameState.inPlay, state.gameState.inProgress, state.ballPos.top]);
 
-  //Ball bounce logic
+  //Ball bounce & out logic
   useEffect(() => {
     const withinArea =
       state.ballPos.left >= 0 && state.ballPos.left <= GAME_WIDTH;
@@ -128,6 +119,10 @@ function App() {
       state.ballPos.top <= state.playerTwo.pos.top + PADDLE_HEIGHT;
 
     if (touchRightPaddle) dispatch({ type: ACTION_TYPES.BOUNCE_RIGHT });
+
+    // Scoring
+    if (!withinArea && state.ballPos.left <= -BALL_SIZE) dispatch({ type: ACTION_TYPES.PLAYER_TWO_SCORE })
+    if (!withinArea && state.ballPos.left >= GAME_WIDTH + BALL_SIZE) dispatch({ type: ACTION_TYPES.PLAYER_ONE_SCORE })
   }, [
     state.ballPos.top,
     state.ballPos.left,
@@ -136,9 +131,6 @@ function App() {
     state.playerTwo.pos.top,
     state.playerTwo.pos.left,
   ]);
-
-  //Score Logic
-
 
   const GameScore = ({playerOne, playerTwo}) => {
     return (

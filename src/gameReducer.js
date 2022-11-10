@@ -1,5 +1,10 @@
-import { PADDLE_SPEED, GAME_HEIGHT, PADDLE_HEIGHT } from './App';
-
+import {
+  PADDLE_SPEED,
+  GAME_HEIGHT,
+  PADDLE_HEIGHT,
+  BALL_SIZE,
+  GAME_WIDTH,
+} from './GAME_CONST';
 
 export const ACTION_TYPES = {
   MOVE_BALL: 'MOVE_BALL',
@@ -11,8 +16,14 @@ export const ACTION_TYPES = {
   LEAVE_RIGHT: 'LEAVE_RIGHT',
   MOVE_PLAYER_ONE: 'MOVE_PLAYER_ONE',
   MOVE_PLAYER_TWO: 'MOVE_PLAYER_TWO',
+  PLAYER_ONE_SCORE: 'PLAYER_ONE_SCORE',
+  PLAYER_TWO_SCORE: 'PLAYER_TWO_SCORE',
 };
 
+const INITIAL_BALL_POS = {
+  top: (GAME_HEIGHT - BALL_SIZE) / 2,
+  left: (GAME_WIDTH + BALL_SIZE) / 2,
+};
 
 export const gameReducer = (state, action) => {
   switch (action.type) {
@@ -59,7 +70,6 @@ export const gameReducer = (state, action) => {
             },
           },
         };
-
       else
         return {
           ...state,
@@ -86,7 +96,6 @@ export const gameReducer = (state, action) => {
             },
           },
         };
-
       else
         return {
           ...state,
@@ -101,6 +110,17 @@ export const gameReducer = (state, action) => {
             },
           },
         };
+    case ACTION_TYPES.PLAYER_ONE_SCORE:
+      return {
+        ...state,
+        playerOne: {
+          ...state.playerOne,
+          score: state.playerOne.score + 1,
+        },
+        ballPos: INITIAL_BALL_POS,
+      };
+    case ACTION_TYPES.PLAYER_TWO_SCORE:
+      return state
     default:
       return state;
   }
