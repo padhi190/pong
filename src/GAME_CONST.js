@@ -10,4 +10,4 @@ export const PADDLE_HEIGHT = 100;
 export const PADDLE_SPEED = 35; //how fast paddle can move
 
 export const INTERVAL = 25; //used in setInterval
-
+export const WIN_SCORE = 3;

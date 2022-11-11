@@ -4,10 +4,10 @@ import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
 import { gameReducer, ACTION_TYPES } from './gameReducer';
 import { GameScore } from './GameScore';
-import { GAME_HEIGHT, BALL_SIZE, GAME_WIDTH, INIT_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH, INTERVAL } from './GAME_CONST';
+import { GAME_HEIGHT, BALL_SIZE, GAME_WIDTH, INIT_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH, INTERVAL, WIN_SCORE } from './GAME_CONST';
 import { Paddle } from './Paddle';
 
-const INITIAL_STATE = {
+export const INITIAL_STATE = {
   ballPos: {
     top: (GAME_HEIGHT - BALL_SIZE) / 2,
     left: (GAME_WIDTH + BALL_SIZE) / 2,
@@ -31,8 +31,9 @@ const INITIAL_STATE = {
     score: 0,
   },
   gameState: {
-    inProgress: true,
-    inPlay: true,
+    inProgress: false,
+    inPlay: false,
+    winner: ''
   },
 };
 
@@ -57,20 +58,29 @@ function App() {
     state.gameState.inPlay,
   ]);
 
-  // Paddle movement Player 1
+  // Paddle movement Player 1 & continue game
   const handleKeyDown = (e) => {
-    if (e.key === 'ArrowUp') {
-      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'UP' });
+    if (state.gameState.inProgress) {
+      if (e.key === 'ArrowUp') {
+        return dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'UP' });
+      }
+      if (e.key === 'ArrowDown') {
+        return dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'DOWN' });
+      }
+      if (e.key === ' ') return dispatch({ type: ACTION_TYPES.CONTINUE_GAME });
+    } else {
+      if (e.key === 'Enter') return dispatch({ type: ACTION_TYPES.RESET_GAME });
     }
-    if (e.key === 'ArrowDown') {
-      dispatch({ type: ACTION_TYPES.MOVE_PLAYER_ONE, payload: 'DOWN' });
-    }
+    
+    
   };
+
+  // Add listener on keydown
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [state.gameState.inProgress]);
 
   // Player 2 movement logic
   useEffect(() => {
@@ -133,9 +143,15 @@ function App() {
     state.playerTwo.pos.left,
   ]);
 
+  // Check if player wins
+  useEffect(() => {
+    if (state.playerOne.score >= WIN_SCORE) dispatch({ type: ACTION_TYPES.STOP_GAME, payload: 'Player One' });
+    if (state.playerTwo.score >= WIN_SCORE) dispatch({ type: ACTION_TYPES.STOP_GAME, payload: 'Player Two' });
+  },[state.playerOne.score, state.playerTwo.score])
+
   return (
     <GameContainer>
-      <GameScore playerOne={state.playerOne.score} playerTwo={state.playerTwo.score} />
+      <GameScore playerOne={state.playerOne.score} playerTwo={state.playerTwo.score} gameState={state.gameState} />
       <GameBox width={GAME_WIDTH} height={GAME_HEIGHT}>
         <Ball size={BALL_SIZE} position={state.ballPos} />
         <Paddle
