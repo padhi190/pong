@@ -7,6 +7,7 @@ import { gameReducer, ACTION_TYPES } from './gameReducer';
 import { GameScore } from './GameScore';
 import { GAME_HEIGHT, BALL_SIZE, GAME_WIDTH, INIT_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH, INTERVAL, WIN_SCORE } from './GAME_CONST';
 import { Paddle } from './Paddle';
+import logo from './logo.png';
 
 export const INITIAL_STATE = {
   ballPos: {
@@ -180,6 +181,7 @@ function App() {
           position={state.playerTwo.pos}
         />
       </GameBox>
+      <img src={logo} alt="Logo" style={{ width: '200px'}} />
     </GameContainer>
   );
 }
