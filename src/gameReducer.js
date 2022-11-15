@@ -1,3 +1,4 @@
+import { INITIAL_STATE } from './App';
 import {
   PADDLE_SPEED,
   GAME_HEIGHT,
@@ -5,7 +6,6 @@ import {
   BALL_SIZE,
   GAME_WIDTH,
   INIT_SPEED,
-  INC_SPEED,
 } from './GAME_CONST';
 
 export const ACTION_TYPES = {
@@ -20,6 +20,9 @@ export const ACTION_TYPES = {
   MOVE_PLAYER_TWO: 'MOVE_PLAYER_TWO',
   PLAYER_ONE_SCORE: 'PLAYER_ONE_SCORE',
   PLAYER_TWO_SCORE: 'PLAYER_TWO_SCORE',
+  CONTINUE_GAME: 'CONTINUE_GAME',
+  STOP_GAME: 'STOP_GAME',
+  RESET_GAME: 'RESET_GAME',
 };
 
 const INITIAL_BALL_POS = {
@@ -124,6 +127,10 @@ export const gameReducer = (state, action) => {
           left: -INIT_SPEED
         },
         ballPos: INITIAL_BALL_POS,
+        gameState: {
+          ...state.gameState,
+          inPlay: false,
+        }
       };
     case ACTION_TYPES.PLAYER_TWO_SCORE:
       return {
@@ -137,6 +144,36 @@ export const gameReducer = (state, action) => {
           left: INIT_SPEED
         },
         ballPos: INITIAL_BALL_POS,
+        gameState: {
+          ...state.gameState,
+          inPlay: false,
+        }
+      };
+    case ACTION_TYPES.CONTINUE_GAME:
+      return {
+        ...state,
+        gameState: {
+          ...state.gameState,
+          inPlay: true,
+        }
+      }
+    case ACTION_TYPES.STOP_GAME:
+      return {
+        ...state,
+        gameState: {
+          inPlay: false,
+          inProgress: false,
+          winner: action.payload,
+        }
+      }
+    case ACTION_TYPES.RESET_GAME:
+      return {
+        ...INITIAL_STATE,
+        gameState: {
+          inPlay: true,
+          inProgress: true,
+          winnter: ''
+        }
       };
     default:
       return state;
