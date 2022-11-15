@@ -9,5 +9,5 @@ export const CenterColumn = styled.div.attrs(props => ({
     }
 }))`
     position: absolute;
-    border-right: 6px dashed white
+    border-right: 6px dashed #999
 `

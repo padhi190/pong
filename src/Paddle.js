@@ -11,4 +11,5 @@ export const Paddle = styled.div.attrs(props => ({
   position: absolute;
   background-color: black;
   transition: all ease 0.25s;
+  z-index: 2000;
 `;

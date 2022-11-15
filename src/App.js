@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from 'react';
 import { Ball } from './Ball';
+import { CenterColumn } from './CenterColumn';
 import { GameBox } from './GameBox';
 import { GameContainer } from './GameContainer';
 import { gameReducer, ACTION_TYPES } from './gameReducer';
@@ -15,6 +16,16 @@ export const INITIAL_STATE = {
   ballSpeed: {
     top: -INIT_SPEED,
     left: -INIT_SPEED,
+  },
+  centerColumn: {
+    pos: {
+      top: 0,
+      left: GAME_WIDTH / 2,
+    },
+    size: {
+      height: GAME_HEIGHT,
+      width: 0,
+    }
   },
   playerOne: {
     pos: {
@@ -158,6 +169,10 @@ function App() {
           width={PADDLE_WIDTH}
           height={PADDLE_HEIGHT}
           position={state.playerOne.pos}
+        />
+        <CenterColumn
+          position={state.centerColumn.pos}
+          size={state.centerColumn.size}
         />
         <Paddle
           width={PADDLE_WIDTH}
